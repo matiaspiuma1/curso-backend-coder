@@ -1,20 +1,13 @@
-const Contenedor = require('./Contenedor.js');
 const express = require('express');
-
-const app = express();
-
-const productos = new Contenedor('productos.txt');
-
-app.get('/productos', async (req, res) => {
-	const mostrarProductos = await productos.getAll();
-	res.send(mostrarProductos);
-});
-
-app.get('/productoRandom', async (req, res) => {
-	const p = await productos.getAll();
-	const numeroRandom = Math.floor(Math.random() * p.length);
-	res.send(p[numeroRandom]);
-});
+const routerProductos = require('./routes/productos.js');
 
 const PORT = 8080;
-app.listen(PORT, () => console.log(`Server listening on PORT ${PORT}`));
+const app = express();
+const server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.on('error', err => console.log(`Error: ${err}`));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(__dirname + '/public'));
+
+app.use('/api', routerProductos);
