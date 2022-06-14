@@ -1,47 +1,21 @@
-const router = require('express').Router();
-const Producto = require('../claseProducto.js');
+const { Router } = require('express');
+
+const router = Router();
+
+let productos = [];
 
 router.get('/productos', (req, res) => {
-    res.send(Producto.productos);
-});
+    res.render('form');
+})
 
-router.get('/productos/:id', (req, res) => {
-    let producto = Producto.productos.find(producto => producto.id === Number(req.params.id));
-    if (producto) {
-        res.send(producto);
-    } else {
-        res.status(404).send({ error: 'Producto no encontrado' });
-    }
-});
+router.get('/', (req, res) => {
+    res.render('productos', { productos });
+})
 
 router.post('/productos', (req, res) => {
-    let { title, price, thumbnail } = req.body;
-    const producto = { title, price, thumbnail };
-    producto.id = Producto.productos.length + 1;
-    Producto.productos.push(producto);
-    res.send(Producto.productos);
-});
-
-router.put('/productos/:id', (req, res) => {
-    let { title, price, thumbnail } = req.body;
-    let index = Producto.productos.findIndex(producto => producto.id === Number(req.params.id));
-    if (index >= 0) {
-        Producto.productos[index] = { title, price, thumbnail };
-        Producto.productos[index].id = Number(req.params.id);
-        res.send(Producto.productos[index]);
-    } else {
-        res.status(404).send({ error: 'Producto no encontrado' });
-    }
-});
-
-router.delete('/productos/:id', (req, res) => {
-    let index = Producto.productos.findIndex(producto => producto.id === Number(req.params.id));
-    if (index >= 0) {
-        Producto.productos.splice(index, 1);
-        res.send({ message: 'Producto eliminado' });
-    } else {
-        res.status(404).send({ error: 'Producto no encontrado' });
-    }
+    const { name, price, picture } = req.body;
+    productos.push({ name, price, picture });
+    res.render('form');
 })
 
 module.exports = router;
