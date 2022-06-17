@@ -1,15 +1,36 @@
 const express = require('express');
-const router = require('./routes/productos');
+const { Server: HttpServer } = require('http');
+const { Server: IOServer } = require('socket.io');
+const { engine } = require('express-handlebars');
+const { router, products, messages } = require('./routes/router.js');
+const fs = require('fs');
+
 const PORT = 8080;
 const app = express();
+const httpserver = new HttpServer(app);
+const io = new IOServer(httpserver);
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.static('views'));
 
+app.engine('handlebars', engine());
 app.set('views', './views');
-app.set('view engine', 'ejs');
+app.set('view engine', 'handlebars');
 
 app.use('/', router);
 
-const server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+io.on('connection', socket => {
+	io.sockets.emit('products', products);
+	io.sockets.emit('chat', messages);
+	socket.on('newProduct', newProduct => {
+		products.push(newProduct);
+		io.sockets.emit('products', products);
+	})
+	socket.on('newMessage', newMessage => {
+		messages.push(newMessage);
+		fs.writeFileSync('./chat/chat.txt', JSON.stringify(messages));
+		io.sockets.emit('chat', messages);
+	})
+});
+
+const server = httpserver.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 server.on('error', () => console.log(`Error: ${err}`));
